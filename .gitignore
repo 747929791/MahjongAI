@@ -108,3 +108,4 @@ venv.bak/
 
 #AI
 logger/log_jianyang_ai_1/
+!replay/*/*.log
