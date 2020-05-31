@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from analysis.analyzer import *
 import importlib
 
 from logger.logger_handler import Logger
@@ -7,7 +8,7 @@ from client.tenhou_client import TenhouClient
 __author__ = "Jianyang Tang"
 __email__ = "jian4yang2.tang1@gmail.com"
 
-
+@LogTrace
 def connect_and_play(ai_obj, opponent_class, user, username, lobbytype, gametype, logger_obj, drawer=None):
     client = TenhouClient(ai_obj, opponent_class, user, username, lobbytype, gametype, logger_obj, drawer)
     client.connect()
@@ -28,6 +29,7 @@ def connect_and_play(ai_obj, opponent_class, user, username, lobbytype, gametype
         return False
 
 
+@LogTrace
 def run_example_ai():
     # the OBJECT of your own implemented Mahjong agent
     ai_module = importlib.import_module("agents.random_ai_example")
@@ -48,8 +50,9 @@ def run_example_ai():
     connect_and_play(ai_obj, opponent_class, user, user_name, '0', game_type, logger_obj)  # play one game
 
 
+@LogTrace
 def run_jianyang_ai(drawer=None):
-    ai_module = importlib.import_module("agents.experiment_ai")
+    ai_module = importlib.import_module("agents.jianyang_ai")
     waiting_prediction_class = getattr(ai_module, "EnsembleCLF")
     ensemble_clfs = waiting_prediction_class()
     ai_class = getattr(ai_module, "MLAI")
@@ -66,6 +69,7 @@ def run_jianyang_ai(drawer=None):
     connect_and_play(ai_obj, opponent_class, user, user_name, '0', game_type, logger_obj, drawer)  # play one game
 
 
+@LogTrace
 def main():
     run_jianyang_ai()
 

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from analysis.analyzer import *
 import re
 from urllib.parse import unquote
 
@@ -17,6 +18,7 @@ class TenhouParser:
     opponent_seat_dict = {'d': 0, 'e': 1, 'f': 2, 'g': 3}
 
     @staticmethod
+    @LogTrace
     def parse_auth_msg(msg):
         rating, auth_code, new_level = '', '', ''
         if 'auth=' in msg:
@@ -28,6 +30,7 @@ class TenhouParser:
         return auth_code, rating, new_level
 
     @staticmethod
+    @LogTrace
     def parse_names_and_levels(msg):
         levels = [int(level) for level in TenhouParser.get_attribute_value(msg, 'dan').split(',')]
         res = [{}, {}, {}, {}]
@@ -37,10 +40,12 @@ class TenhouParser:
         return res
 
     @staticmethod
+    @LogTrace
     def parse_game_type(msg):
         return int(TenhouParser.get_attribute_value(msg, 'type'))
 
     @staticmethod
+    @LogTrace
     def parse_log_link(msg):
         seat = int(TenhouParser.get_attribute_value(msg,'oya'))
         seat = (4 - seat) % 4
@@ -48,6 +53,7 @@ class TenhouParser:
         return log_referer, seat
 
     @staticmethod
+    @LogTrace
     def parse_initial_states(msg):
         round_info = [int(s) for s in TenhouParser.get_attribute_value(msg, 'seed').split(',')]
         scores = [int(score) for score in TenhouParser.get_attribute_value(msg, 'ten').split(',')]
@@ -62,20 +68,24 @@ class TenhouParser:
         }
 
     @staticmethod
+    @LogTrace
     def parse_initial_hand(msg):
-        return [int(tile) for tile in TenhouParser.get_attribute_value(msg, 'hai').split(',')]
+        return sorted([int(tile) for tile in TenhouParser.get_attribute_value(msg, 'hai').split(',')])
 
     @staticmethod
+    @LogTrace
     def parse_opp_tiles(msg, player):
         attribute = 'hai{}'.format(player)
         if attribute in msg:
             return [int(tile) for tile in TenhouParser.get_attribute_value(msg, attribute).split(',')]
 
     @staticmethod
+    @LogTrace
     def parse_win_score(msg):
         return [int(s) for s in TenhouParser.get_attribute_value(msg,'ten').split(',')][1]
 
     @staticmethod
+    @LogTrace
     def parse_after_reconnection(msg):
         players = []
         for i in range(0, 4):
@@ -106,6 +116,7 @@ class TenhouParser:
         return players
 
     @staticmethod
+    @LogTrace
     def parse_meld(msg):
         data = int(TenhouParser.get_attribute_value(msg, 'm'))
         meld = Meld()
@@ -123,6 +134,7 @@ class TenhouParser:
         return meld
 
     @staticmethod
+    @LogTrace
     def parse_chi(data, meld):
         # chow encoding     xxxxxx    |    0    |    xx    |    xx     |   xx   |   x        |   xx
         #                base/which                 tile3     tile2      tile1     is chow       who called
@@ -147,6 +159,7 @@ class TenhouParser:
         return meld
 
     @staticmethod
+    @LogTrace
     def parse_pon(data, meld):
         t4 = (data >> 5) & 0x3
         t0, t1, t2 = ((1, 2, 3), (0, 2, 3), (0, 1, 3), (0, 1, 2))[t4]
@@ -163,6 +176,7 @@ class TenhouParser:
             meld.called_tile = meld.tiles[3]
 
     @staticmethod
+    @LogTrace
     def parse_kan(data, meld):
         base_and_called = data >> 8
         base = base_and_called // 4
@@ -174,34 +188,41 @@ class TenhouParser:
         meld.open = meld.by_whom != meld.from_whom
 
     @staticmethod
+    @LogTrace
     def parse_nuki(data, meld):
         meld.type = Meld.NUKI
         meld.tiles = [data >> 8]
 
     @staticmethod
+    @LogTrace
     def parse_tile(msg):
         result = re.match(r'^<[tefgEFGTUVWD]+\d*', msg).group()
         return int(result[2:])
 
     @staticmethod
+    @LogTrace
     def parse_bonus_indicator(msg):
         return int(TenhouParser.get_attribute_value(msg, 'hai'))
 
     @staticmethod
+    @LogTrace
     def parse_who_called_reach(msg):
         return int(TenhouParser.get_attribute_value(msg, 'who'))
 
     @staticmethod
+    @LogTrace
     def parse_final_scores(msg):
         data = TenhouParser.get_attribute_value(msg, 'owari')
         data = [float(i) for i in data.split(',')]
         return {'scores': data[::2], 'uma': data[1::2]}
 
     @staticmethod
+    @LogTrace
     def parse_opponent_seat(msg):
         return TenhouParser.opponent_seat_dict[msg.lower()[1]]
 
     @staticmethod
+    @LogTrace
     def is_discard_msg(msg):
         if '<GO' in msg:
             return False
@@ -213,11 +234,13 @@ class TenhouParser:
         return False
 
     @staticmethod
+    @LogTrace
     def get_attribute_value(msg, attr_name):
         result = re.findall(r'{}="([^"]*)"'.format(attr_name), msg)
         return result and result[0] or None
 
     @staticmethod
+    @LogTrace
     def generate_auth_token(auth_code):
         translation_table = [63006, 9570, 49216, 45888, 9822, 23121, 59830, 51114, 54831, 4189, 580, 5203, 42174, 59972,
                              55457, 59009, 59347, 64456, 8673, 52710, 49975, 2006, 62677, 3463, 17754, 5357]

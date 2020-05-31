@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from analysis.analyzer import *
+import sys
 import datetime
 import os
 import socket
@@ -21,9 +23,13 @@ JOINING_GAME_TIMEOUT = 2
 MSG_LOGGER = False
 BUFFER_MODE = True
 
+if '--fake' in sys.argv:
+    TENHOU_HOST = '127.0.0.1'
+    TENHOU_PORT = 7479
 
 class TenhouClient:
 
+    @LogTrace
     def __init__(self, ai_obj, opponent_class, user_id, user_name, lobby_type, game_type, logger_obj, drawer=None):
         self.game_table = GameTable(ai_obj, opponent_class, self)
         self.drawer = drawer
@@ -40,10 +46,12 @@ class TenhouClient:
         self.reconnection_message = None
         self.win_suggestions = ['t="8"', 't="9"', 't="10"', 't="11"', 't="12"', 't="13"', 't="15"']
 
+    @LogTrace
     def connect(self):
         self.skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.skt.connect((TENHOU_HOST, TENHOU_PORT))
 
+    @LogTrace
     def authenticate(self):
         # send authentication request
         self._send('<HELO name="{}" tid="f0" sx="M" />'.format(quote(self.user_id)))
@@ -96,6 +104,7 @@ class TenhouClient:
             self._log('    Error: Failed to authenticate!')
             return False
 
+    @LogTrace
     def start_game(self):
         if not self._looking_for_a_game():
             return False
@@ -177,6 +186,7 @@ class TenhouClient:
         self.end_game()
         return True
 
+    @LogTrace
     def end_game(self, success=True):
         self.continue_game = False
         if success:
@@ -195,6 +205,7 @@ class TenhouClient:
             self._log('    Game was ended unexpected')
             self._log('')
 
+    @LogTrace
     # Following are all subroutines of function start_game(),  w.r.t. game process controlling
     def _looking_for_a_game(self):
         replay_link = ''
@@ -277,6 +288,7 @@ class TenhouClient:
 
         return True
 
+    @LogTrace
     def _handle_reconnection_msg(self, msg):
         self.drawer and self.drawer.clear_objs()
         self._handle_initial_msg(msg)
@@ -301,6 +313,7 @@ class TenhouClient:
             self.game_table.round_number, len(self.game_table.bot.discard34)
         ))
 
+    @LogTrace
     def _handle_initial_msg(self, msg):
         init_info = TenhouParser.parse_initial_states(msg)
         self.game_table.init_round(
@@ -312,7 +325,6 @@ class TenhouClient:
             init_info['scores']
         )
         tiles = TenhouParser.parse_initial_hand(msg)
-        tiles = sorted(tiles)
         self.game_table.bot.init_hand(tiles)
 
         # display in GUI
@@ -340,6 +352,7 @@ class TenhouClient:
         self._log('    Player wind: {}'.format(Tile.tile_graph_dict[self.game_table.bot.player_wind]))
         self._log(' ')
 
+    @LogTrace
     def _handle_new_bonus_indicator(self, msg):
         tile = TenhouParser.parse_bonus_indicator(msg)
         # save data to objects
@@ -351,6 +364,7 @@ class TenhouClient:
         self.drawer and self.drawer.add_bonus_indicator(tile)
         self.drawer and self.drawer.set_remain(self.game_table.count_remaining_tiles)
 
+    @LogTrace
     def _handle_final_scores(self, msg):
         self.logger_obj.flush_buffer()
         final_scores = TenhouParser.parse_final_scores(msg)
@@ -364,6 +378,7 @@ class TenhouClient:
         # display game result in logs
         self._log('    Round end: {}'.format([self.game_table.bot] + self.game_table.opponents))
 
+    @LogTrace
     def _handle_round_end(self, msg=''):
         self.logger_obj.flush_buffer()
         self.logger_obj.add_line('')
@@ -442,6 +457,7 @@ class TenhouClient:
         sleep(2)
         self._send('<NEXTREADY />')
 
+    @LogTrace
     def _handle_liuju(self, msg):
         self._round_end_info_to_file("    [R{}T{}] NO ONE WINS, NO MORE TILES...".format(
             self.game_table.round_number, len(self.game_table.bot.discard34))
@@ -476,6 +492,7 @@ class TenhouClient:
         sleep(2)
         self._send('<NEXTREADY />')
 
+    @LogTrace
     def _handle_reach_claim(self, msg):
         who_called_reach = TenhouParser.parse_who_called_reach(msg)
 
@@ -490,10 +507,12 @@ class TenhouClient:
         self.both_log(reach_msg)
         self._stream_log('')
 
+    @LogTrace
     def _call_win(self, msg):
         self._wait_for_a_while()
         self._send('<N type="6" />')
 
+    @LogTrace
     def _win_check_after_drawing(self, msg):
         win_suggestions = ['t="16"', 't="48"']
         if any(m in msg for m in win_suggestions):
@@ -504,8 +523,9 @@ class TenhouClient:
             return True
         return False
 
+    @LogTrace
     def _handle_draw_tile(self, msg):
-        drawn_tile_136 = TenhouParser.parse_tile(msg)
+        drawn_tile_136 = TenhouParser.parse_tile(msg) #tile136牌号
         self.drawer and self.drawer.draw(drawn_tile_136)
 
         if not self.game_table.bot.reach_status:
@@ -579,6 +599,7 @@ class TenhouClient:
 
         return False
 
+    @LogTrace
     def _handle_meld_call(self, msg, meld_tile):
         player_hand = self.game_table.bot.format_hand(meld_tile) if meld_tile else ''
         meld = TenhouParser.parse_meld(msg)
@@ -619,6 +640,7 @@ class TenhouClient:
             for i in range(1, 4):
                 self.game_table.bot.handle_opponent_discard(i)
 
+    @LogTrace
     def _handle_opponent_discard(self, msg):
         opponent_seat = TenhouParser.parse_opponent_seat(msg)
         if opponent_seat == 0:
@@ -669,7 +691,9 @@ class TenhouClient:
         return -2
 
     # Followling are all subroutines, different function, w.r.t. communication
+    @LogTrace
     def _send(self, msg):
+        AnaLog('    -->',msg)
         msg_ = msg + '\0'
         try:
             self.skt.sendall(msg_.encode())
@@ -677,6 +701,7 @@ class TenhouClient:
             print(e)
             self.end_game(False)
 
+    @LogTrace
     def _get(self):
         msgs = ""
         try:
@@ -685,8 +710,10 @@ class TenhouClient:
             print(er)
             sleep(0.1)
         msgs = msgs.split('\x00')
+        AnaLog('<--    ',msgs[0:-1])
         return msgs[0:-1]
 
+    @LogTrace
     def _pxr_tag(self):
         if IS_TOURNAMENT:
             return '<PXR V="-1" />'
@@ -695,6 +722,7 @@ class TenhouClient:
         else:
             return '<PXR V="9" />'
 
+    @LogTrace
     def _keep_alive(self):
         def send_alive():
             while self.continue_game:
@@ -710,6 +738,7 @@ class TenhouClient:
     def _wait_for_a_while(self):
         sleep(self.WAIT_FOR_A_WHILE)
 
+    @LogTrace
     def _parse_game_rule(self, game_type):
         rules = bin(int(game_type)).replace('0b', '')[::-1]
         rules += '0' * (8 - len(rules))
@@ -731,22 +760,28 @@ class TenhouClient:
         ))
         return True
 
+    @LogTrace
     def _buffer_log(self, msg):
         self.logger_obj.buffer_mode and self.logger_obj.logger_buffer.append(msg)
 
+    @LogTrace
     def _stream_log(self, msg):
         (not self.logger_obj.buffer_mode) and self.logger_obj.add_line(msg)
 
+    @LogTrace
     def _log(self, msg):
         self.logger_obj.add_line(msg)
 
+    @LogTrace
     def both_log(self, msg):
         self._buffer_log(msg)
         self._stream_log(msg)
 
+    @LogTrace
     def _round_end_info_to_file(self, msg):
         self.logger_obj.add_round_end_result(msg)
 
+    @LogTrace
     def _flush_buffer(self):
         self.logger_obj.add_line('    ' + '-' * 50)
         for bf_msg in self.logger_obj.logger_buffer:

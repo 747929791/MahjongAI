@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from analysis.analyzer import *
 import logging
 
 import datetime
@@ -10,7 +11,6 @@ __email__ = "jian4yang2.tang1@gmail.com"
 
 
 class Logger:
-
     def __init__(self, log_id, ai_id, buffer_mode=False):
         self.log_id = log_id
         self.ai_id = ai_id
@@ -21,6 +21,7 @@ class Logger:
         self._set_up_logger()
         self.lg = logging.getLogger('{}_{}'.format(log_id, ai_id))
 
+    
     def _set_up_logger(self):
         root_dir = os.path.dirname(os.path.abspath("__file__"))
         logs_directory = root_dir + "/logger/{}/".format(self.log_id)
@@ -44,18 +45,24 @@ class Logger:
         self.scores_path = logs_directory + "{}_result.txt".format(self.ai_id)
         self.rank_path = logs_directory + "ranks.txt"
 
+    
     def add_line(self, msg):
+        msg=msg.encode('gbk',errors='replace').decode(encoding='gbk',errors='replace')
         self.lg.info(msg)
 
+    
     def flush_buffer(self):
         self.add_line('    ' + '-' * 50)
         for bf_msg in self.logger_buffer:
             self.add_line(bf_msg)
         self.logger_buffer = []
 
+    
     def add_round_end_result(self, msg):
+        msg=msg.encode('gbk',errors='replace').decode(encoding='gbk',errors='replace')
         open(self.scores_path, 'a').write(msg)
 
+    
     def add_game_end_result(self, rk):
         if os.path.isfile(self.rank_path):
             ranks = [int(r.split(':')[1]) for r in open(self.rank_path, 'r').read().split("\n")[0:4]]

@@ -1,0 +1,1 @@
+start python ./gui_main.py --fake

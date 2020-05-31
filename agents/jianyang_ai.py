@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from analysis.analyzer import *
 import datetime
 import os
 import pickle
@@ -1330,6 +1331,7 @@ class WaitingAnalyser:
 
 class MLAI(AIInterface):
 
+    @LogTrace
     def __init__(self, ensemble_clfs):
         super().__init__()
         self.ensemble_clfs = ensemble_clfs
@@ -1342,10 +1344,12 @@ class MLAI(AIInterface):
         self.dis_funcs = {3: self._dis_3_st, 2: self._dis_2_st, 1: self._dis_1_st, 0: self._dis_1_st}
         self.riichi_waiting = None
 
+    @LogTrace
     def init_state(self):
         super().init_state()
         self.erase_states()
 
+    @LogTrace
     def to_discard_tile(self):
         if self.called_reach:
             return self.tile_34_to_136(self.to_discard_after_reach)
@@ -1557,6 +1561,7 @@ class MLAI(AIInterface):
                 return False
         return True
 
+    @LogTrace
     def can_discard(self, t34, hand_ana):
         if t34 > 26:
             return self._can_discard_chr(t34, hand_ana)
@@ -1610,6 +1615,7 @@ class MLAI(AIInterface):
 
         return can_discard
 
+    @LogTrace
     def can_call_reach(self):
         """
         :return: False, 0 if can not call reach, else True, corresponding_to_be_discarded_tile
@@ -1630,6 +1636,7 @@ class MLAI(AIInterface):
 
         return False, 0
 
+    @LogTrace
     def should_call_kan(self, tile136, from_opponent):
         tile34 = tile136 // 4
         hand_ana = self._get_hand_ana()
@@ -1727,6 +1734,7 @@ class MLAI(AIInterface):
 
         return False, False
 
+    @LogTrace
     def try_to_call_meld(self, tile136, might_call_chi):
         # check if bot can win this tile
         if self.reach_status:
