@@ -38,7 +38,7 @@ class TenhouClient:
         self.user_name = user_name
         self.lobby = lobby_type
         self.game_type = game_type
-        self.WAIT_FOR_A_WHILE = 0.5
+        self.WAIT_FOR_A_WHILE = 0.02
         self.skt = None
         self.continue_game = True
         self.looking_for_game = True
@@ -454,7 +454,6 @@ class TenhouClient:
 
         self._flush_buffer()
         self._wait_for_a_while()
-        sleep(2)
         self._send('<NEXTREADY />')
 
     @LogTrace
@@ -489,7 +488,6 @@ class TenhouClient:
 
         self.logger_obj.flush_buffer()
         self._wait_for_a_while()
-        sleep(2)
         self._send('<NEXTREADY />')
 
     @LogTrace
@@ -730,7 +728,7 @@ class TenhouClient:
                 time_to_sleep = 15
                 for i in range(2 * time_to_sleep):
                     if self.continue_game:
-                        sleep(0.5)
+                        sleep(0.1)
 
         self.keep_alive_thread = Thread(target=send_alive)
         self.keep_alive_thread.start()

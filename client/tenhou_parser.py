@@ -139,7 +139,7 @@ class TenhouParser:
         # chow encoding     xxxxxx    |    0    |    xx    |    xx     |   xx   |   x        |   xx
         #                base/which                 tile3     tile2      tile1     is chow       who called
         # e.g. 100000       0       11      01        00      1      11
-        # 11: player 3 called this meld
+        # 11: player 3 called this meld ("who"'s perspective,3=clockwise next)
         # 1: is a chow set
         # 00: first of four tiles
         # 01: second of four tiles
