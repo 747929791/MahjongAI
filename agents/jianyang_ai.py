@@ -1362,6 +1362,7 @@ class MLAI(AIInterface):
         s = datetime.datetime.now()
 
         def wait_3():
+            return
             e = datetime.datetime.now()
             diff = (e - s).seconds
             diff < 1 and sleep(1 + random.uniform(0, 2))
