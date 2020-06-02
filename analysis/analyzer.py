@@ -23,7 +23,7 @@ def LogTrace(func):
             LogStr+='  '+str(spec)
         except Exception:
             LogStr+='  ParseArgError'
-        #LogTrace.out.write(LogStr+'\n')
+        LogTrace.out.write(LogStr+'\n')
         #print(inspect.getargspec(func))
         #print(inspect.getsource(func))
         LogTrace.level+=1
@@ -35,7 +35,7 @@ def LogTrace(func):
             LogStr+='  '+str(ret)
         except Exception:
             LogStr+='  ParseRetError'
-        #LogTrace.out.write(LogStr+'\n')
+        LogTrace.out.write(LogStr+'\n')
         LogTrace.out.flush()
         return ret
     
