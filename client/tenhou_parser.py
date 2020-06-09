@@ -185,7 +185,7 @@ class TenhouParser:
         called = base_and_called % 4
         meld.called_tile = meld.tiles[called]
         # to mark closed\opened kans
-        meld.open = meld.by_whom != meld.from_whom
+        meld.open = meld.from_whom != 0
 
     @staticmethod
     @LogTrace
