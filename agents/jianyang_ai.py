@@ -1075,7 +1075,7 @@ class WaitingAnalyser:
                     sorted_indices.append(bad_indices[j])
                     j += 1
                 else:
-                    sorted_indices.append(good_indices[j])
+                    sorted_indices.append(good_indices[i])
                     i += 1
         for index in sorted_indices:
             to_discard = waiting_riichi[index][0]
