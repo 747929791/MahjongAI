@@ -204,8 +204,6 @@ class TenhouClient:
         else:
             self._log('    Game was ended unexpected')
             self._log('')
-        if '--fake' in sys.argv:
-            quit()
 
     @LogTrace
     # Following are all subroutines of function start_game(),  w.r.t. game process controlling
